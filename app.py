@@ -1,4 +1,5 @@
 """IT Assist - Inventory Management System (Flask + MySQL + pandas)."""
+import os
 from datetime import date
 
 import mysql.connector
@@ -573,4 +574,8 @@ def report_csv(kind):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        debug=False
+    )
