@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Reports{% endblock %}
+{% block heading %}Reports{% endblock %}
+{% block content %}
+<div class="box">
+  <ul class="nav nav-pills mb-3 no-print">
+    {% for k, v in reports.items() %}<li class="nav-item"><a class="nav-link {{ 'active' if k == kind }}" href="/reports?type={{ k }}">{{ v[0].replace(' Report', '') }}</a></li>{% endfor %}
+  </ul>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">{{ title }} <span class="text-muted small">· {{ rows|length }} rows</span></h5>
+    <div class="no-print"><a href="/reports/{{ kind }}/csv" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i> CSV</a>
+    <button class="btn btn-sm btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button></div>
+  </div>
+  <div class="table-responsive"><table class="table table-modern mb-0">
+    <thead><tr>{% for c in cols %}<th>{{ c }}</th>{% endfor %}</tr></thead><tbody>
+    {% for r in rows %}<tr>{% for c in cols %}<td>
+      {%- set v = r[c] -%}
+      {%- if v is none %}—
+      {%- elif c in ('Status', 'Warranty Status', 'Usage Category') %}{{ badge(v) }}
+      {%- elif c in ('Purchase Cost', 'Cost') %}{{ v|money }}
+      {%- else %}{{ v }}{% endif %}</td>{% endfor %}</tr>
+    {% else %}<tr><td colspan="{{ cols|length or 1 }}" class="text-muted text-center py-3">No data.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

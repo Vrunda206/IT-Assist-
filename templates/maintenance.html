@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Maintenance{% endblock %}
+{% block heading %}Maintenance{% endblock %}
+{% block content %}
+<div class="box mb-3"><h6>Add Maintenance Record</h6>
+  <form method="post" action="/maintenance/add" class="row g-2">
+    <div class="col-md-3"><select name="asset_id" class="form-select" required><option value="">Select asset</option>
+      {% for a in asset_list %}<option value="{{ a.asset_id }}">{{ a.asset_tag }} — {{ a.asset_name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><input name="issue" class="form-control" placeholder="Issue *" required></div>
+    <div class="col-md-2"><input type="date" name="maintenance_date" value="{{ today }}" class="form-control" required></div>
+    <div class="col-md-2"><input type="number" name="cost" min="0" step="0.01" class="form-control" placeholder="Cost (₹)"></div>
+    <div class="col-md-2"><select name="status" class="form-select">{% for s in statuses %}<option>{{ s }}</option>{% endfor %}</select></div>
+    <div class="col-md-10"><input name="remarks" class="form-control" placeholder="Remarks (optional)"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Add record</button></div>
+  </form>
+</div>
+<div class="box"><div class="d-flex justify-content-between align-items-center mb-2">
+  <h6 class="mb-0">Maintenance Records <span class="text-muted small">· Total cost {{ total|money }}</span></h6>
+  <form method="get"><select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+    <option value="">All statuses</option>{% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}</select></form></div>
+  <div class="table-responsive"><table class="table table-modern align-middle mb-0">
+    <thead><tr><th>Asset</th><th>Issue</th><th>Date</th><th>Cost</th><th>Status</th><th>Update status</th></tr></thead><tbody>
+    {% for m in rows %}<tr><td><a href="/assets/{{ m.asset_id }}">{{ m.asset_tag }}</a> <span class="text-muted small">{{ m.asset_name }}</span></td>
+    <td>{{ m.issue }}</td><td>{{ m.maintenance_date }}</td><td>{{ m.cost|money }}</td><td>{{ badge(m.status) }}</td>
+    <td><form method="post" action="/maintenance/{{ m.maintenance_id }}/status" class="d-flex gap-1">
+      <select name="status" class="form-select form-select-sm">{% for s in statuses %}<option {{ 'selected' if m.status == s }}>{{ s }}</option>{% endfor %}</select>
+      <button class="btn btn-sm btn-outline-primary">Update</button></form></td></tr>
+    {% else %}<tr><td colspan="6" class="text-muted text-center py-3">No records.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

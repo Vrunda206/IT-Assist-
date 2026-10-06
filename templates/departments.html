@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+{% block heading %}Departments{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8"><div class="box"><h6>All Departments</h6>
+    <div class="table-responsive"><table class="table table-modern align-middle mb-0">
+      <thead><tr><th>Department</th><th>Location</th><th>Employees</th><th>Assets in use</th><th>Asset value</th><th></th></tr></thead><tbody>
+      {% for d in rows %}<tr><td class="fw-semibold">{{ d.department_name }}</td><td>{{ d.location or '—' }}</td><td>{{ d.employees }}</td><td>{{ d.assets }}</td><td>{{ d.asset_value|money }}</td>
+      <td class="text-end"><form method="post" action="/departments/{{ d.department_id }}/delete" onsubmit="return confirm('Delete department {{ d.department_name }}?')">
+        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>
+      {% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-4"><div class="box"><h6>Add Department</h6>
+    <form method="post" action="/departments/add">
+      <label class="form-label">Name *</label><input name="department_name" class="form-control mb-3" required>
+      <label class="form-label">Location</label><input name="location" class="form-control mb-3">
+      <button class="btn btn-primary w-100">Add department</button>
+    </form>
+    <p class="small text-muted mt-3 mb-0">A department that still has employees cannot be deleted (foreign key RESTRICT).</p>
+  </div></div>
+</div>
+{% endblock %}

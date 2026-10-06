@@ -1,0 +1,6 @@
+{% macro badge(s) -%}
+{% set m = {'Available':'green','Assigned':'blue','Under Maintenance':'orange','Retired':'gray',
+ 'Active':'blue','Returned':'green','Inactive':'gray','Pending':'amber','In Progress':'orange','Completed':'green',
+ 'Low Usage':'amber','Normal Usage':'blue','High Usage':'green','Expired':'red','Expiring Soon':'orange','Valid':'green'} -%}
+<span class="st st-{{ m.get(s, 'gray') }}">{{ s }}</span>
+{%- endmacro %}

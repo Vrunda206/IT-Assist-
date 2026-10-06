@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}{{ a.asset_tag }}{% endblock %}
+{% block heading %}Asset Details{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-7"><div class="box h-100">
+    <div class="d-flex justify-content-between"><h5 class="mb-3">{{ a.asset_name }} <small class="text-muted">{{ a.asset_tag }}</small></h5>{{ badge(a.status) }}</div>
+    <dl class="row mb-0 details">
+      <dt class="col-4">Category</dt><dd class="col-8">{{ a.category_name }}</dd>
+      <dt class="col-4">Brand / Model</dt><dd class="col-8">{{ a.brand or '—' }} / {{ a.model or '—' }}</dd>
+      <dt class="col-4">Serial number</dt><dd class="col-8">{{ a.serial_number }}</dd>
+      <dt class="col-4">Vendor</dt><dd class="col-8">{{ a.vendor_name or '—' }}</dd>
+      <dt class="col-4">Purchase</dt><dd class="col-8">{{ a.purchase_date }} · {{ a.purchase_cost|money }}</dd>
+      <dt class="col-4">Location</dt><dd class="col-8">{{ a.location or '—' }}</dd>
+      <dt class="col-4">Assigned to</dt><dd class="col-8">{% if current %}<a href="/employees/{{ current.employee_id }}">{{ current.employee_name }}</a> ({{ current.department_name }}) since {{ current.assigned_date }}{% else %}Not assigned{% endif %}</dd>
+    </dl>
+    <div class="mt-3"><a href="/assets/{{ a.asset_id }}/edit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Edit</a>
+    <a href="/assets" class="btn btn-sm btn-outline-secondary">Back</a></div>
+  </div></div>
+  <div class="col-lg-5"><div class="box h-100"><h6>Warranty</h6>
+    {% if a.warranty_expiry %}<p class="mb-1">Expires on <b>{{ a.warranty_expiry }}</b> {{ badge(w_state) }}</p>
+    <p class="text-muted mb-0">{{ days_left if days_left >= 0 else (-days_left) }} day(s) {{ 'remaining' if days_left >= 0 else 'since expiry' }}</p>
+    {% else %}<p class="text-muted mb-0">No warranty recorded.</p>{% endif %}
+    <hr><h6>Usage Analytics</h6>
+    {% if summary %}
+    <ul class="list-unstyled summary mb-0">
+      <li><span>Avg daily usage</span><b>{{ summary.avg_hours }} h</b></li>
+      <li><span>Utilization</span><b>{{ summary.utilization }}% {{ badge(summary.usage_category) }}</b></li>
+      <li><span>Avg performance</span><b>{{ summary.avg_perf }}</b></li>
+      <li><span>Total downtime</span><b>{{ summary.downtime }} h</b></li>
+    </ul>{% else %}<p class="text-muted mb-0">No usage recorded yet.</p>{% endif %}
+  </div></div>
+
+  <div class="col-lg-6"><div class="box"><h6>Assignment History</h6>
+    <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Employee</th><th>Assigned</th><th>Returned</th><th>Status</th></tr></thead><tbody>
+    {% for h in history %}<tr><td>{{ h.employee_name }}</td><td>{{ h.assigned_date }}</td><td>{{ h.returned_date or '—' }}</td><td>{{ badge(h.assignment_status) }}</td></tr>
+    {% else %}<tr><td colspan="4" class="text-muted">Never assigned.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="box"><h6>Maintenance History</h6>
+    <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Date</th><th>Issue</th><th>Cost</th><th>Status</th></tr></thead><tbody>
+    {% for m in maint %}<tr><td>{{ m.maintenance_date }}</td><td>{{ m.issue }}</td><td>{{ m.cost|money }}</td><td>{{ badge(m.status) }}</td></tr>
+    {% else %}<tr><td colspan="4" class="text-muted">No maintenance records.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-12"><div class="box"><h6>Recent Usage Records</h6>
+    <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Date</th><th>Usage hours</th><th>Performance</th><th>Downtime (h)</th></tr></thead><tbody>
+    {% for u in usage %}<tr><td>{{ u.usage_date }}</td><td>{{ u.usage_hours }}</td><td>{{ u.performance_score }}</td><td>{{ u.downtime_hours }}</td></tr>
+    {% else %}<tr><td colspan="4" class="text-muted">No usage records.</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endblock %}

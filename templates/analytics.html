@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Usage Analytics{% endblock %}
+{% block heading %}Usage Analytics{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  {% for label, val in [('Avg utilization', stats.avg_util ~ '%'), ('Avg daily usage', stats.avg_hours ~ ' h'), ('Avg performance score', stats.avg_perf), ('Total downtime', stats.downtime ~ ' h')] %}
+  <div class="col-6 col-lg-3"><div class="box stat"><div class="num">{{ val }}</div><div class="lbl">{{ label }}</div></div></div>{% endfor %}
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-5"><div class="box"><h6>Average Utilization by Category (%)</h6><div class="chart-wrap"><canvas id="cUtil"></canvas></div></div></div>
+  <div class="col-lg-7"><div class="box"><h6>Add Usage Record</h6>
+    <form method="post" action="/usage/add" class="row g-2">
+      <div class="col-md-6"><label class="form-label small">Asset *</label><select name="asset_id" class="form-select" required>
+        {% for a in asset_list %}<option value="{{ a.asset_id }}">{{ a.asset_tag }} — {{ a.asset_name }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label small">Date *</label><input type="date" name="usage_date" value="{{ today }}" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label small">Usage hours (0-24) *</label><input type="number" name="usage_hours" min="0" max="24" step="0.1" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label small">Performance (0-100) *</label><input type="number" name="performance_score" min="0" max="100" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label small">Downtime (h)</label><input type="number" name="downtime_hours" min="0" step="0.1" value="0" class="form-control"></div>
+      <div class="col-12"><button class="btn btn-primary">Add usage record</button></div>
+    </form>
+    <p class="small text-muted mt-2 mb-0">Utilization = usage hours ÷ 8 expected hours × 100. Low ≤ 40%, Normal 41–75%, High &gt; 75%.</p>
+  </div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-6"><div class="box"><h6>Most Used Assets</h6>
+    <table class="table table-modern mb-0"><thead><tr><th>Asset</th><th>Utilization</th><th>Category</th></tr></thead><tbody>
+    {% for r in most %}<tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.utilization }}%</td><td>{{ badge(r.usage_category) }}</td></tr>{% endfor %}</tbody></table></div></div>
+  <div class="col-lg-6"><div class="box"><h6>Least Used Assets</h6>
+    <table class="table table-modern mb-0"><thead><tr><th>Asset</th><th>Utilization</th><th>Category</th></tr></thead><tbody>
+    {% for r in least %}<tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.utilization }}%</td><td>{{ badge(r.usage_category) }}</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+<div class="box mb-3"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Utilization per Asset</h6>
+  <form method="get"><select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+    <option value="">All usage categories</option>{% for c in classes %}<option {{ 'selected' if cat == c }}>{{ c }}</option>{% endfor %}</select></form></div>
+  <div class="table-responsive"><table class="table table-modern mb-0">
+    <thead><tr><th>Tag</th><th>Asset</th><th>Category</th><th>Avg hours</th><th>Utilization</th><th>Performance</th><th>Downtime (h)</th><th>Usage</th></tr></thead><tbody>
+    {% for r in rows %}<tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.asset_name }}</td><td>{{ r.category }}</td><td>{{ r.avg_hours }}</td>
+    <td>{{ r.utilization }}%</td><td>{{ r.avg_perf }}</td><td>{{ r.downtime }}</td><td>{{ badge(r.usage_category) }}</td></tr>
+    {% else %}<tr><td colspan="8" class="text-muted text-center py-3">No data.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="box"><h6>Latest Usage Records</h6><div class="table-responsive"><table class="table table-modern mb-0">
+  <thead><tr><th>Date</th><th>Asset</th><th>Hours</th><th>Performance</th><th>Downtime</th></tr></thead><tbody>
+  {% for u in recent %}<tr><td>{{ u.usage_date }}</td><td>{{ u.asset_tag }} <span class="text-muted small">{{ u.asset_name }}</span></td><td>{{ u.usage_hours }}</td><td>{{ u.performance_score }}</td><td>{{ u.downtime_hours }}</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const chart = {{ chart|tojson }};
+new Chart(cUtil, {type:'bar', data:{labels:chart.labels, datasets:[{data:chart.values, backgroundColor:'#2563eb', borderRadius:6}]},
+  options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, max:100}}}});
+</script>
+{% endblock %}

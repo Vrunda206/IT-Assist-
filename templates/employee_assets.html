@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}{{ emp.employee_name }}{% endblock %}
+{% block heading %}Employee Assets{% endblock %}
+{% block content %}
+<div class="box mb-3">
+  <h5 class="mb-1">{{ emp.employee_name }} {{ badge(emp.status) }}</h5>
+  <div class="text-muted">{{ emp.designation or '—' }} · {{ emp.department_name }} · {{ emp.email }}</div>
+</div>
+<div class="box"><h6>Assigned Assets (current and past)</h6>
+  <div class="table-responsive"><table class="table table-modern mb-0">
+    <thead><tr><th>Tag</th><th>Asset</th><th>Category</th><th>Assigned</th><th>Returned</th><th>Status</th></tr></thead><tbody>
+    {% for r in rows %}<tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.asset_name }}</td><td>{{ r.category_name }}</td>
+    <td>{{ r.assigned_date }}</td><td>{{ r.returned_date or '—' }}</td><td>{{ badge(r.assignment_status) }}</td></tr>
+    {% else %}<tr><td colspan="6" class="text-muted">No assets assigned to this employee.</td></tr>{% endfor %}</tbody></table></div>
+  <a href="/employees" class="btn btn-sm btn-outline-secondary mt-3">Back to employees</a>
+</div>
+{% endblock %}

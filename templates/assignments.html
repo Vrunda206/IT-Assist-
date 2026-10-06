@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Assignments{% endblock %}
+{% block heading %}Assignments{% endblock %}
+{% block content %}
+<div class="box mb-3"><h6>Assign an Asset</h6>
+  <form method="post" action="/assignments/assign" class="row g-2">
+    <div class="col-md-4"><select name="asset_id" class="form-select" required><option value="">Select available asset</option>
+      {% for a in free_assets %}<option value="{{ a.asset_id }}">{{ a.asset_tag }} — {{ a.asset_name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><select name="employee_id" class="form-select" required><option value="">Select employee</option>
+      {% for e in active_emps %}<option value="{{ e.employee_id }}">{{ e.employee_name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><input name="remarks" class="form-control" placeholder="Remarks (optional)"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Assign</button></div>
+  </form>
+</div>
+<div class="box"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Assignment History</h6>
+  <form method="get"><select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+    <option value="">All</option><option {{ 'selected' if status == 'Active' }}>Active</option><option {{ 'selected' if status == 'Returned' }}>Returned</option></select></form></div>
+  <div class="table-responsive"><table class="table table-modern align-middle mb-0">
+    <thead><tr><th>Asset</th><th>Employee</th><th>Department</th><th>Assigned</th><th>Returned</th><th>Status</th><th></th></tr></thead><tbody>
+    {% for r in rows %}<tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a> <span class="text-muted small">{{ r.asset_name }}</span></td>
+    <td>{{ r.employee_name }}</td><td>{{ r.department_name }}</td><td>{{ r.assigned_date }}</td><td>{{ r.returned_date or '—' }}</td><td>{{ badge(r.assignment_status) }}</td>
+    <td class="text-end">{% if r.assignment_status == 'Active' %}<form method="post" action="/assignments/{{ r.assignment_id }}/return" onsubmit="return confirm('Mark {{ r.asset_tag }} as returned?')">
+      <button class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-in-left"></i> Return</button></form>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="7" class="text-muted text-center py-3">No assignments.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

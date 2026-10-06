@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Assets{% endblock %}
+{% block heading %}Assets{% endblock %}
+{% block content %}
+<div class="box">
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-md-4"><input name="q" value="{{ q }}" class="form-control" placeholder="Search tag, name or serial number"></div>
+    <div class="col-md-3"><select name="category" class="form-select"><option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c.category_id }}" {{ 'selected' if cat|string == c.category_id|string }}>{{ c.category_name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><select name="status" class="form-select"><option value="">All statuses</option>
+      {% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}</select></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill">Filter</button><a href="/assets" class="btn btn-outline-secondary">Reset</a></div>
+  </form>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="text-muted small">{{ assets|length }} asset(s)</span>
+    <a href="/assets/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add asset</a>
+  </div>
+  <div class="table-responsive"><table class="table table-modern align-middle">
+    <thead><tr><th>Tag</th><th>Name</th><th>Category</th><th>Status</th><th>Assigned to</th><th>Cost</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+    {% for a in assets %}
+      <tr><td class="fw-semibold">{{ a.asset_tag }}</td><td>{{ a.asset_name }}<div class="small text-muted">{{ a.serial_number }}</div></td>
+      <td>{{ a.category_name }}</td><td>{{ badge(a.status) }}</td><td>{{ a.employee_name or '—' }}</td><td>{{ a.purchase_cost|money }}</td>
+      <td class="text-end text-nowrap">
+        <a href="/assets/{{ a.asset_id }}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+        <a href="/assets/{{ a.asset_id }}/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+        <form method="post" action="/assets/{{ a.asset_id }}/delete" class="d-inline" onsubmit="return confirm('Delete asset {{ a.asset_tag }}? Its assignment, maintenance and usage records will also be deleted.')">
+          <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+      </td></tr>
+    {% else %}<tr><td colspan="7" class="text-center text-muted py-4">No assets match your search.</td></tr>{% endfor %}
+    </tbody></table></div>
+</div>
+{% endblock %}

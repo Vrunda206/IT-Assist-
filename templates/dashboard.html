@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  {% for label, val, icon, tone in [
+    ('Total Assets', cards.total, 'pc-display', 'blue'), ('Available', cards.available, 'check-circle', 'green'),
+    ('Assigned', cards.assigned, 'person-check', 'indigo'), ('Under Maintenance', cards.maintenance, 'tools', 'orange'),
+    ('Employees', cards.employees, 'people', 'gray'), ('Total Asset Value', cards.value|money, 'currency-rupee', 'teal')] %}
+  <div class="col-6 col-md-4 col-xl-2">
+    <div class="box stat">
+      <div class="icon ic-{{ tone }}"><i class="bi bi-{{ icon }}"></i></div>
+      <div class="num">{{ val }}</div><div class="lbl">{{ label }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6"><div class="box"><h6>Assets by Category</h6><div class="chart-wrap"><canvas id="cCat"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="box"><h6>Assets by Status</h6><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="box"><h6>Assets in Use by Department</h6><div class="chart-wrap"><canvas id="cDept"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="box"><h6>Asset Usage Analytics (Low / Normal / High)</h6><div class="chart-wrap"><canvas id="cUsage"></canvas></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="box h-100"><h6>Usage Summary</h6>
+      <ul class="list-unstyled mb-0 summary">
+        <li><span>Average utilization</span><b>{{ stats.avg_util }}%</b></li>
+        <li><span>Average daily usage</span><b>{{ stats.avg_hours }} h</b></li>
+        <li><span>Average performance score</span><b>{{ stats.avg_perf }}</b></li>
+        <li><span>Total downtime</span><b>{{ stats.downtime }} h</b></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="box h-100"><h6>Most Used Assets</h6>
+      <div class="table-responsive"><table class="table table-modern mb-0">
+        <thead><tr><th>Tag</th><th>Asset</th><th>Utilization</th><th>Category</th></tr></thead>
+        <tbody>{% for r in top %}
+          <tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.asset_name }}</td>
+          <td>{{ r.utilization }}%</td><td>{{ badge(r.usage_category) }}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">No usage data yet.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="box"><h6>Warranty Expiring in 90 Days</h6>
+      <div class="table-responsive"><table class="table table-modern mb-0">
+        <thead><tr><th>Tag</th><th>Asset</th><th>Expires</th><th>Days Left</th></tr></thead>
+        <tbody>{% for r in expiring %}
+          <tr><td><a href="/assets/{{ r.asset_id }}">{{ r.asset_tag }}</a></td><td>{{ r.asset_name }}</td>
+          <td>{{ r.warranty_expiry }}</td><td>{{ r.days_left }}</td></tr>
+        {% else %}<tr><td colspan="4" class="text-muted">No warranties expiring soon.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const charts = {{ charts|tojson }};
+const palette = ['#2563eb','#0ea5e9','#14b8a6','#f59e0b','#8b5cf6','#ef4444','#64748b'];
+const statusColors = {'Available':'#22c55e','Assigned':'#3b82f6','Under Maintenance':'#f97316','Retired':'#94a3b8'};
+const usageColors = ['#f59e0b','#3b82f6','#22c55e'];
+const opts = {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}};
+new Chart(cCat, {type:'bar', data:{labels:charts.cat.labels, datasets:[{data:charts.cat.values, backgroundColor:'#2563eb', borderRadius:6}]}, options:opts});
+new Chart(cStatus, {type:'doughnut', data:{labels:charts.status.labels, datasets:[{data:charts.status.values, backgroundColor:charts.status.labels.map(l=>statusColors[l])}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right'}}}});
+new Chart(cDept, {type:'bar', data:{labels:charts.dept.labels, datasets:[{data:charts.dept.values, backgroundColor:'#14b8a6', borderRadius:6}]}, options:opts});
+new Chart(cUsage, {type:'bar', data:{labels:charts.usage.labels, datasets:[{data:charts.usage.values, backgroundColor:usageColors, borderRadius:6}]}, options:opts});
+</script>
+{% endblock %}
